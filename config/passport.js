@@ -35,22 +35,13 @@ passport.use(
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: process.env.GOOGLE_CALLBACK_URL,
       scope: ["profile", "email"],
-      passReqToCallback: true, // Pass request to callback
     },
-    async (req, accessToken, refreshToken, profile, done) => {
+    async (accessToken, refreshToken, profile, done) => {
       try {
-        // Get role from query parameter (sent from frontend)
-        const role = req.query.state || "parent"; // Default to parent if not provided
-
         // Check if user already exists with this googleId
         let user = await User.findOne({ googleId: profile.id });
 
         if (user) {
-          // User exists, update role if provided
-          if (role && ["school", "parent", "teacher", "tutor"].includes(role)) {
-            user.role = role;
-            await user.save();
-          }
           return done(null, user);
         }
 
@@ -60,14 +51,8 @@ passport.use(
         if (user) {
           // Link Google account to existing user
           user.googleId = profile.id;
-          user.avatar = profile.photos[0]?.value || "";
+          user.avatar = profile.photos[0].value;
           user.isVerified = true;
-          
-          // Update role if provided
-          if (role && ["school", "parent", "teacher", "tutor"].includes(role)) {
-            user.role = role;
-          }
-          
           await user.save();
           return done(null, user);
         }
@@ -77,15 +62,15 @@ passport.use(
           googleId: profile.id,
           email: profile.emails[0].value,
           username: profile.displayName || profile.emails[0].value.split('@')[0],
-          avatar: profile.photos[0]?.value || "",
+          avatar: profile.photos[0].value,
           isVerified: true,
-          role: role && ["school", "parent", "teacher", "tutor"].includes(role) ? role : "parent",
+          // Note: Role is not set here - will need to be handled in frontend
+         
         });
 
         await newUser.save();
         return done(null, newUser);
       } catch (error) {
-        console.error("Google OAuth Error:", error);
         return done(error, null);
       }
     }
