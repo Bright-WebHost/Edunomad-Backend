@@ -65,7 +65,7 @@ passport.use(
           avatar: profile.photos[0].value,
           isVerified: true,
           // Note: Role is not set here - will need to be handled in frontend
-         
+          role: "parent", // Default role, can be updated later
         });
 
         await newUser.save();
