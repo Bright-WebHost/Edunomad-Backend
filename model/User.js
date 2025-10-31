@@ -20,7 +20,8 @@ const userSchema = new mongoose.Schema(
         return !this.googleId; // Only required for local authentication
       },
       trim: true,
-      match: [/^[0-15]{16,20}$/, "Phone must be 10–15 digits"],
+      // match: [/^[0-9]{10,15}$/, "Phone must be 10–15 digits"],
+      match: [/^\+?[0-9]{10,15}$/, "Phone must be 10–15 digits and may start with +"],
     },
     email: {
       type: String,
